@@ -1,6 +1,7 @@
 import { detectCategory } from './categorize'
 import { buildAccount, isPersonalSender } from './accountDetect'
 import { parseUnsubscribeHeader } from './unsubscribe'
+import { analyzeSenders } from './authAnalysis'
 
 function parseFrom(raw) {
   if (!raw) return { email: 'unknown@unknown.com', name: 'Unknown' }
@@ -41,6 +42,7 @@ async function fetchHeaderBatch(accessToken, ids) {
         `&metadataHeaders=Date`,
         `&metadataHeaders=Subject`,
         `&metadataHeaders=List-Unsubscribe`,
+        `&metadataHeaders=Authentication-Results`,
         `&fields=payload/headers`,
       ].join('')
 
@@ -50,11 +52,15 @@ async function fetchHeaderBatch(accessToken, ids) {
       const headers = data.payload?.headers || []
       const get = (name) => headers.find((h) => h.name.toLowerCase() === name.toLowerCase())?.value || ''
 
+      const { email: fromEmail, name: fromName } = parseFrom(get('From'))
       return {
         from: get('From'),
+        fromEmail,
+        fromName,
         date: get('Date'),
         subject: get('Subject'),
         listUnsubscribe: get('List-Unsubscribe'),
+        authResults: get('Authentication-Results'),
       }
     })
   )
@@ -119,9 +125,10 @@ export async function scanInbox(accessToken, scanDepth, onProgress) {
     if (i + BATCH < ids.length) await new Promise((r) => setTimeout(r, 100))
   }
 
-  onProgress({ progress: 88, message: 'Discovering accounts…' })
+  onProgress({ progress: 88, message: 'Analysing authentication & accounts…' })
 
   const senderMap = buildSenderMap(messages)
+  const authStats = analyzeSenders(messages.filter(Boolean))
 
   const senders = Object.values(senderMap)
     .map((s) => ({ ...s, category: detectCategory(s.email, s.name) }))
@@ -137,6 +144,7 @@ export async function scanInbox(accessToken, scanDepth, onProgress) {
   return {
     senders,
     accounts,
+    authStats,
     totalScanned: messages.filter(Boolean).length,
   }
 }

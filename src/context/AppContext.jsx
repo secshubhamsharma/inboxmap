@@ -25,6 +25,8 @@ export function AppProvider({ children }) {
   const [accessToken, setAccessToken] = useState(null)
   const [senders, setSenders] = useState([])
   const [accounts, setAccounts] = useState([])
+  const [authStats, setAuthStats] = useState({})
+  const [breaches, setBreaches] = useState([])
   const [scanStatus, setScanStatus] = useState('idle')
   const [scanProgress, setScanProgress] = useState(0)
   const [scanMessage, setScanMessage] = useState('')
@@ -48,6 +50,8 @@ export function AppProvider({ children }) {
     setAccessToken(null)
     setSenders([])
     setAccounts([])
+    setAuthStats({})
+    setBreaches([])
     setScanStatus('idle')
     setScanProgress(0)
     setScanMessage('')
@@ -62,6 +66,8 @@ export function AppProvider({ children }) {
         accessToken, setAccessToken,
         senders, setSenders,
         accounts, setAccounts,
+        authStats, setAuthStats,
+        breaches, setBreaches,
         scanStatus, setScanStatus,
         scanProgress, setScanProgress,
         scanMessage, setScanMessage,
