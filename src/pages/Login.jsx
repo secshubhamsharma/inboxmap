@@ -9,24 +9,25 @@ import { useGmailScan } from '@/hooks/useGmailScan'
 const FEATURES = [
   {
     icon: Inbox,
-    title: 'Inbox breakdown',
-    desc: 'See every sender ranked by volume — newsletters, promotions, notifications.',
+    title: 'Account discovery',
+    desc: 'Find every service and company that has your email address — even ones you forgot.',
   },
   {
     icon: BarChart2,
-    title: 'Visual analytics',
-    desc: 'Charts, heatmaps, and trends showing exactly how your inbox is being used.',
+    title: 'One-click unsubscribe',
+    desc: 'Every bulk sender is legally required to include an unsubscribe link. We surface it instantly.',
   },
   {
     icon: Download,
-    title: 'Export & act',
-    desc: 'Download a full CSV of your senders. Know who to unsubscribe from.',
+    title: 'Dead weight report',
+    desc: 'See which senders have gone silent for months. Clean them out in one session.',
   },
 ]
 
 const PERMISSIONS = [
-  { ok: true,  text: 'Read sender names and addresses' },
+  { ok: true,  text: 'Read sender names and email addresses' },
   { ok: true,  text: 'Read subject lines and dates' },
+  { ok: true,  text: 'Read unsubscribe headers (List-Unsubscribe)' },
   { ok: false, text: 'Read email body content' },
   { ok: false, text: 'Send, delete or modify emails' },
   { ok: false, text: 'Store anything on any server' },

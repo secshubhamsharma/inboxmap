@@ -8,6 +8,7 @@ export function useGmailScan() {
     accessToken,
     settings,
     setSenders,
+    setAccounts,
     setScanStatus,
     setScanProgress,
     setScanMessage,
@@ -24,7 +25,7 @@ export function useGmailScan() {
     toast.info('Scanning your inbox…')
 
     try {
-      const { senders, totalScanned } = await scanInbox(
+      const { senders, accounts, totalScanned } = await scanInbox(
         accessToken,
         settings.scanDepth,
         ({ progress, message }) => {
@@ -33,26 +34,17 @@ export function useGmailScan() {
         }
       )
       setSenders(senders)
+      setAccounts(accounts)
       setTotalScanned(totalScanned)
       setLastScanned(new Date())
       setScanStatus('done')
-      toast.success(`Inbox scanned — ${senders.length} senders found`)
+      toast.success(`Found ${accounts.length} services · ${senders.length} total senders`)
     } catch (err) {
       console.error(err)
       setScanStatus('error')
       toast.error('Scan failed — please try again')
     }
-  }, [
-    accessToken,
-    scanStatus,
-    settings.scanDepth,
-    setSenders,
-    setScanStatus,
-    setScanProgress,
-    setScanMessage,
-    setTotalScanned,
-    setLastScanned,
-  ])
+  }, [accessToken, scanStatus, settings.scanDepth, setSenders, setAccounts, setScanStatus, setScanProgress, setScanMessage, setTotalScanned, setLastScanned])
 
   return { startScan }
 }

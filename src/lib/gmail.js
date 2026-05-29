@@ -1,4 +1,6 @@
 import { detectCategory } from './categorize'
+import { buildAccount, isPersonalSender } from './accountDetect'
+import { parseUnsubscribeHeader } from './unsubscribe'
 
 function parseFrom(raw) {
   if (!raw) return { email: 'unknown@unknown.com', name: 'Unknown' }
@@ -18,9 +20,7 @@ async function fetchMessageIds(accessToken, maxResults) {
     let url = `https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=${batch}&fields=messages(id),nextPageToken`
     if (pageToken) url += `&pageToken=${pageToken}`
 
-    const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    })
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
     if (!res.ok) throw new Error(`Gmail API error: ${res.status}`)
     const data = await res.json()
     if (data.messages) ids.push(...data.messages.map((m) => m.id))
@@ -34,35 +34,67 @@ async function fetchMessageIds(accessToken, maxResults) {
 async function fetchHeaderBatch(accessToken, ids) {
   return Promise.all(
     ids.map(async (id) => {
-      const url = `https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}?format=metadata&metadataHeaders=From&metadataHeaders=Date&fields=payload/headers`
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
+      const url = [
+        `https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}`,
+        `?format=metadata`,
+        `&metadataHeaders=From`,
+        `&metadataHeaders=Date`,
+        `&metadataHeaders=Subject`,
+        `&metadataHeaders=List-Unsubscribe`,
+        `&fields=payload/headers`,
+      ].join('')
+
+      const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
       if (!res.ok) return null
       const data = await res.json()
       const headers = data.payload?.headers || []
-      const from = headers.find((h) => h.name === 'From')?.value || ''
-      const date = headers.find((h) => h.name === 'Date')?.value || ''
-      return { from, date }
+      const get = (name) => headers.find((h) => h.name.toLowerCase() === name.toLowerCase())?.value || ''
+
+      return {
+        from: get('From'),
+        date: get('Date'),
+        subject: get('Subject'),
+        listUnsubscribe: get('List-Unsubscribe'),
+      }
     })
   )
 }
 
 function buildSenderMap(messages) {
   const map = {}
+
   for (const msg of messages) {
     if (!msg) continue
     const { email, name } = parseFrom(msg.from)
     if (!email || email === 'unknown@unknown.com') continue
+
     const dateStr = msg.date ? new Date(msg.date).toISOString() : new Date().toISOString()
+    const dateOnly = dateStr.split('T')[0]
+
     if (!map[email]) {
-      map[email] = { email, name, count: 0, dates: [], firstDate: dateStr, lastDate: dateStr }
+      map[email] = {
+        email,
+        name,
+        count: 0,
+        dates: [],
+        subjects: [],
+        firstDate: dateStr,
+        lastDate: dateStr,
+        unsubscribeUrl: null,
+      }
     }
-    map[email].count++
-    map[email].dates.push(dateStr.split('T')[0])
-    if (dateStr < map[email].firstDate) map[email].firstDate = dateStr
-    if (dateStr > map[email].lastDate) map[email].lastDate = dateStr
+
+    const entry = map[email]
+    entry.count++
+    entry.dates.push(dateOnly)
+    if (msg.subject) entry.subjects.push({ subject: msg.subject, date: dateStr })
+    if (msg.listUnsubscribe && !entry.unsubscribeUrl) {
+      entry.unsubscribeUrl = parseUnsubscribeHeader(msg.listUnsubscribe)
+    }
+    if (dateStr < entry.firstDate) entry.firstDate = dateStr
+    if (dateStr > entry.lastDate) entry.lastDate = dateStr
   }
+
   return map
 }
 
@@ -74,11 +106,12 @@ export async function scanInbox(accessToken, scanDepth, onProgress) {
 
   const BATCH = 20
   const messages = []
+
   for (let i = 0; i < ids.length; i += BATCH) {
     const chunk = ids.slice(i, i + BATCH)
     const results = await fetchHeaderBatch(accessToken, chunk)
     messages.push(...results)
-    const pct = 15 + Math.round(((i + chunk.length) / ids.length) * 75)
+    const pct = 15 + Math.round(((i + chunk.length) / ids.length) * 70)
     onProgress({
       progress: pct,
       message: `Fetched ${Math.min(i + BATCH, ids.length)} / ${ids.length} emails…`,
@@ -86,14 +119,26 @@ export async function scanInbox(accessToken, scanDepth, onProgress) {
     if (i + BATCH < ids.length) await new Promise((r) => setTimeout(r, 100))
   }
 
-  onProgress({ progress: 92, message: 'Analyzing senders…' })
+  onProgress({ progress: 88, message: 'Discovering accounts…' })
+
   const senderMap = buildSenderMap(messages)
+
   const senders = Object.values(senderMap)
     .map((s) => ({ ...s, category: detectCategory(s.email, s.name) }))
     .sort((a, b) => b.count - a.count)
 
+  const accounts = Object.values(senderMap)
+    .filter((s) => !isPersonalSender(s.email))
+    .map((s) => buildAccount({ ...s, category: detectCategory(s.email, s.name) }))
+    .sort((a, b) => new Date(a.firstEmailDate) - new Date(b.firstEmailDate))
+
   onProgress({ progress: 100, message: 'Done!' })
-  return { senders, totalScanned: messages.filter(Boolean).length }
+
+  return {
+    senders,
+    accounts,
+    totalScanned: messages.filter(Boolean).length,
+  }
 }
 
 export async function fetchUserInfo(accessToken) {
