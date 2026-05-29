@@ -1,0 +1,75 @@
+const RULES = {
+  Newsletter: [
+    /newsletter/i,
+    /digest/i,
+    /weekly/i,
+    /daily.*brief/i,
+    /substack\.com/i,
+    /medium\.com/i,
+    /mailchimp/i,
+    /campaign-archive/i,
+    /beehiiv/i,
+    /convertkit/i,
+    /revue/i,
+    /tinyletter/i,
+  ],
+  Promotion: [
+    /noreply@amazon/i,
+    /promo/i,
+    /offer/i,
+    /deal/i,
+    /sale/i,
+    /discount/i,
+    /coupon/i,
+    /shop/i,
+    /order.*confirm/i,
+    /flipkart/i,
+    /myntra/i,
+    /swiggy/i,
+    /zomato/i,
+    /bigbasket/i,
+    /meesho/i,
+    /ajio/i,
+    /nykaa/i,
+    /unsubscribe/i,
+  ],
+  Social: [
+    /facebook/i,
+    /twitter/i,
+    /instagram/i,
+    /linkedin/i,
+    /reddit/i,
+    /youtube/i,
+    /tiktok/i,
+    /quora/i,
+    /pinterest/i,
+    /snapchat/i,
+    /discord/i,
+    /slack/i,
+    /whatsapp/i,
+  ],
+  Notification: [
+    /noreply/i,
+    /no-reply/i,
+    /donotreply/i,
+    /alert/i,
+    /notification/i,
+    /notify/i,
+    /support@/i,
+    /info@/i,
+    /help@/i,
+    /system@/i,
+    /automated/i,
+    /mailer-daemon/i,
+    /bounce/i,
+    /postmaster/i,
+  ],
+}
+
+export function detectCategory(email, name) {
+  const str = `${email} ${name}`.toLowerCase()
+  for (const [cat, patterns] of Object.entries(RULES)) {
+    if (patterns.some((p) => p.test(str))) return cat
+  }
+  return 'Other'
+}
