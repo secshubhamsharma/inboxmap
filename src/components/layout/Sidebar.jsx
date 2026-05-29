@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Building2, Ghost, Mail, BarChart2, Settings, ShieldAlert, CalendarDays } from 'lucide-react'
+import { LayoutDashboard, Building2, Ghost, Mail, BarChart2, Settings, ShieldAlert, CalendarDays, Sparkles } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
 import { getSeverity } from '@/lib/breach'
 import { getSuspiciousSenders } from '@/lib/authAnalysis'
@@ -12,6 +12,7 @@ const NAV = [
   { to: '/app/accounts',   icon: Building2,       label: 'Accounts Found', countKey: 'accounts' },
   { to: '/app/dead-weight', icon: Ghost,           label: 'Dead Weight',    countKey: 'dead' },
   { to: '/app/security',   icon: ShieldAlert,     label: 'Security',       countKey: 'security' },
+  { to: '/app/insights',   icon: Sparkles,        label: 'Insights',       countKey: null },
   { to: '/app/timeline',   icon: CalendarDays,    label: 'Timeline',       countKey: null },
   { to: '/app/senders',    icon: Mail,            label: 'Inbox Map',      countKey: 'senders' },
   { to: '/app/analytics',  icon: BarChart2,       label: 'Analytics',      countKey: null },
