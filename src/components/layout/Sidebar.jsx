@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Building2, Ghost, Mail, BarChart2, Settings, ShieldAlert, CalendarDays, Sparkles } from 'lucide-react'
+import { LayoutDashboard, Building2, Ghost, Mail, BarChart2, Settings, ShieldAlert, CalendarDays, Sparkles, Eye } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
 import { getSeverity } from '@/lib/breach'
 import { getSuspiciousSenders } from '@/lib/authAnalysis'
@@ -12,6 +12,7 @@ const NAV = [
   { to: '/app/accounts',   icon: Building2,       label: 'Accounts Found', countKey: 'accounts' },
   { to: '/app/dead-weight', icon: Ghost,           label: 'Dead Weight',    countKey: 'dead' },
   { to: '/app/security',   icon: ShieldAlert,     label: 'Security',       countKey: 'security' },
+  { to: '/app/trackers',   icon: Eye,             label: 'Trackers',       countKey: 'trackers' },
   { to: '/app/insights',   icon: Sparkles,        label: 'Insights',       countKey: null },
   { to: '/app/timeline',   icon: CalendarDays,    label: 'Timeline',       countKey: null },
   { to: '/app/senders',    icon: Mail,            label: 'Inbox Map',      countKey: 'senders' },
@@ -20,12 +21,16 @@ const NAV = [
 ]
 
 export default function Sidebar({ onClose }) {
-  const { senders, accounts, breaches, authStats } = useApp()
+  const { senders, accounts, breaches, authStats, trackers, trackerScanStatus } = useApp()
 
   function getCount(key) {
     if (!key) return null
     if (key === 'accounts') return accounts.length || null
     if (key === 'senders')  return senders.length || null
+    if (key === 'trackers') {
+      const n = Object.values(trackers).filter((t) => t.trackers.length > 0).length
+      return n || (trackerScanStatus === 'scanning' ? '…' : null)
+    }
     if (key === 'dead') {
       const n = accounts.filter((a) => a.status === 'ghost' || a.status === 'dormant').length
       return n || null

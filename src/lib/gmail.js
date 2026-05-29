@@ -2,6 +2,7 @@ import { detectCategory } from './categorize'
 import { buildAccount, isPersonalSender } from './accountDetect'
 import { parseUnsubscribeHeader } from './unsubscribe'
 import { analyzeSenders } from './authAnalysis'
+import { extractBodyHtml, detectTrackersInHtml } from './trackerDetect'
 
 function parseFrom(raw) {
   if (!raw) return { email: 'unknown@unknown.com', name: 'Unknown' }
@@ -44,7 +45,7 @@ async function fetchHeaderBatch(accessToken, ids) {
         `&metadataHeaders=List-Unsubscribe`,
         `&metadataHeaders=Authentication-Results`,
         `&metadataHeaders=X-Mailer`,
-        `&fields=payload/headers`,
+        `&fields=id,payload/headers`,
       ].join('')
 
       const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } })
@@ -55,6 +56,7 @@ async function fetchHeaderBatch(accessToken, ids) {
 
       const { email: fromEmail, name: fromName } = parseFrom(get('From'))
       return {
+        id: data.id,
         from: get('From'),
         fromEmail,
         fromName,
@@ -86,6 +88,7 @@ function buildSenderMap(messages) {
         count: 0,
         dates: [],
         subjects: [],
+        sampleIds: [],
         firstDate: dateStr,
         lastDate: dateStr,
         unsubscribeUrl: null,
@@ -97,6 +100,7 @@ function buildSenderMap(messages) {
     entry.count++
     entry.dates.push(dateOnly)
     if (msg.subject) entry.subjects.push({ subject: msg.subject, date: dateStr })
+    if (msg.id && entry.sampleIds.length < 3) entry.sampleIds.push(msg.id)
     if (msg.listUnsubscribe && !entry.unsubscribeUrl) {
       entry.unsubscribeUrl = parseUnsubscribeHeader(msg.listUnsubscribe)
     }
@@ -106,6 +110,60 @@ function buildSenderMap(messages) {
   }
 
   return map
+}
+
+export async function runTrackerScan(accessToken, senders, onProgress) {
+  const samples = []
+  for (const sender of senders) {
+    for (const id of (sender.sampleIds || []).slice(0, 2)) {
+      samples.push({ id, senderEmail: sender.email, senderName: sender.name })
+    }
+  }
+
+  const capped = samples.slice(0, 250)
+  const trackerMap = {}
+  const BATCH = 8
+
+  for (let i = 0; i < capped.length; i += BATCH) {
+    const chunk = capped.slice(i, i + BATCH)
+
+    await Promise.all(
+      chunk.map(async ({ id, senderEmail, senderName }) => {
+        try {
+          const res = await fetch(
+            `https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}?format=full&fields=payload`,
+            { headers: { Authorization: `Bearer ${accessToken}` } }
+          )
+          if (!res.ok) return
+
+          const data = await res.json()
+          const html = extractBodyHtml(data.payload)
+          const trackers = detectTrackersInHtml(html)
+
+          if (!trackerMap[senderEmail]) {
+            trackerMap[senderEmail] = {
+              email: senderEmail,
+              name: senderName,
+              trackers: [],
+              sampledCount: 0,
+            }
+          }
+
+          trackerMap[senderEmail].sampledCount++
+          for (const t of trackers) {
+            if (!trackerMap[senderEmail].trackers.includes(t)) {
+              trackerMap[senderEmail].trackers.push(t)
+            }
+          }
+        } catch {}
+      })
+    )
+
+    if (onProgress) onProgress(Math.round(((i + chunk.length) / capped.length) * 100))
+    if (i + BATCH < capped.length) await new Promise((r) => setTimeout(r, 120))
+  }
+
+  return trackerMap
 }
 
 export async function scanInbox(accessToken, scanDepth, onProgress) {

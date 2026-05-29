@@ -17,6 +17,7 @@ const PAGE_TITLES = {
   '/app/accounts':    'Accounts Found',
   '/app/dead-weight': 'Dead Weight',
   '/app/security':    'Security',
+  '/app/trackers':    'Email Trackers',
   '/app/insights':    'Insights',
   '/app/timeline':    'Timeline',
   '/app/senders':     'Inbox Map',
