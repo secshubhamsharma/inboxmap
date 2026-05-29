@@ -2,6 +2,7 @@ import { useCallback } from 'react'
 import { toast } from 'sonner'
 import { useApp } from '../context/AppContext'
 import { scanInbox } from '../lib/gmail'
+import { matchBreaches } from '../lib/breach'
 
 export function useGmailScan() {
   const {
@@ -9,6 +10,8 @@ export function useGmailScan() {
     settings,
     setSenders,
     setAccounts,
+    setAuthStats,
+    setBreaches,
     setScanStatus,
     setScanProgress,
     setScanMessage,
@@ -25,7 +28,7 @@ export function useGmailScan() {
     toast.info('Scanning your inbox…')
 
     try {
-      const { senders, accounts, totalScanned } = await scanInbox(
+      const { senders, accounts, authStats, totalScanned } = await scanInbox(
         accessToken,
         settings.scanDepth,
         ({ progress, message }) => {
@@ -35,16 +38,22 @@ export function useGmailScan() {
       )
       setSenders(senders)
       setAccounts(accounts)
+      setAuthStats(authStats || {})
       setTotalScanned(totalScanned)
       setLastScanned(new Date())
       setScanStatus('done')
+
+      matchBreaches(accounts)
+        .then((results) => setBreaches(results))
+        .catch(() => {})
+
       toast.success(`Found ${accounts.length} services · ${senders.length} total senders`)
     } catch (err) {
       console.error(err)
       setScanStatus('error')
       toast.error('Scan failed — please try again')
     }
-  }, [accessToken, scanStatus, settings.scanDepth, setSenders, setAccounts, setScanStatus, setScanProgress, setScanMessage, setTotalScanned, setLastScanned])
+  }, [accessToken, scanStatus, settings.scanDepth, setSenders, setAccounts, setAuthStats, setBreaches, setScanStatus, setScanProgress, setScanMessage, setTotalScanned, setLastScanned])
 
   return { startScan }
 }

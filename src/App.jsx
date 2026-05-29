@@ -6,6 +6,8 @@ import AppShell from '@/components/layout/AppShell'
 import Overview from '@/pages/Overview'
 import Accounts from '@/pages/Accounts'
 import DeadWeight from '@/pages/DeadWeight'
+import Security from '@/pages/Security'
+import Timeline from '@/pages/Timeline'
 import AllSenders from '@/pages/AllSenders'
 import Analytics from '@/pages/Analytics'
 import Settings from '@/pages/Settings'
@@ -32,6 +34,8 @@ function AppRoutes() {
         <Route path="overview"    element={<Overview />} />
         <Route path="accounts"    element={<Accounts />} />
         <Route path="dead-weight" element={<DeadWeight />} />
+        <Route path="security"    element={<Security />} />
+        <Route path="timeline"    element={<Timeline />} />
         <Route path="senders"     element={<AllSenders />} />
         <Route path="analytics"   element={<Analytics />} />
         <Route path="settings"    element={<Settings />} />
