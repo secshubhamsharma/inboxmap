@@ -1,10 +1,12 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { ShieldAlert, ShieldCheck, AlertTriangle, CheckCircle2, Lock, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react'
+import { ShieldAlert, ShieldCheck, AlertTriangle, CheckCircle2, Lock, ExternalLink, ChevronDown, ChevronUp, Server, Eye } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { useApp } from '@/context/AppContext'
 import { getSeverity } from '@/lib/breach'
 import { getSuspiciousSenders } from '@/lib/authAnalysis'
+import { buildPlatformMap, getTotalPlatformExposure } from '@/lib/platformDetect'
+import { detectDarkPatterns, getTotalDarkPatternSenders } from '@/lib/darkPatterns'
 import EmptyState from '@/components/shared/EmptyState'
 import { formatDate } from '@/lib/utils'
 
@@ -114,12 +116,16 @@ function SuspiciousSenderRow({ sender }) {
 }
 
 export default function Security() {
-  const { breaches, authStats, accounts, scanStatus, settings } = useApp()
+  const { breaches, authStats, accounts, senders } = useApp()
 
   const suspiciousSenders = useMemo(() => getSuspiciousSenders(authStats), [authStats])
+  const platformMap       = useMemo(() => buildPlatformMap(senders), [senders])
+  const darkPatterns      = useMemo(() => detectDarkPatterns(senders), [senders])
 
   const criticalBreaches = breaches.filter((b) => getSeverity(b.breach) === 'critical')
   const highBreaches     = breaches.filter((b) => getSeverity(b.breach) === 'high')
+  const totalDarkSenders = getTotalDarkPatternSenders(darkPatterns)
+  const totalPlatformExp = getTotalPlatformExposure(platformMap)
 
   const securityScore = useMemo(() => {
     if (!accounts.length) return null
@@ -127,10 +133,11 @@ export default function Security() {
     score -= Math.min(50, criticalBreaches.length * 15)
     score -= Math.min(30, highBreaches.length * 8)
     score -= Math.min(20, suspiciousSenders.length * 5)
+    score -= Math.min(10, platformMap.length * 1)
     return Math.max(0, score)
-  }, [breaches, suspiciousSenders, accounts])
+  }, [breaches, suspiciousSenders, accounts, platformMap])
 
-  const hasData = accounts.length > 0
+  const hasData = accounts.length > 0 || senders.length > 0
 
   return (
     <motion.div
@@ -227,12 +234,81 @@ export default function Security() {
             </div>
           )}
 
+          {platformMap.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <Server className="w-4 h-4 text-blue-400" />
+                <h2 className="text-sm font-semibold text-zinc-200">Marketing Platform X-Ray</h2>
+              </div>
+              <p className="text-xs text-zinc-500 mb-3">
+                These platforms hold your email address on behalf of {totalPlatformExp} of your senders. A breach at any one of them exposes all their clients.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {platformMap.map((p) => (
+                  <div key={p.name} className="flex items-center gap-3 bg-zinc-900 border border-zinc-800/60 rounded-xl px-4 py-3">
+                    <span className="text-xl flex-shrink-0">{p.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-zinc-200">{p.name}</p>
+                      <p className="text-xs text-zinc-500">{p.senders.length} of your senders use this platform</p>
+                    </div>
+                    <span className="text-lg font-display font-bold text-zinc-400 flex-shrink-0">{p.senders.length}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {darkPatterns.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <Eye className="w-4 h-4 text-pink-400" />
+                <h2 className="text-sm font-semibold text-zinc-200">Dark Pattern Detection</h2>
+              </div>
+              <p className="text-xs text-zinc-500 mb-3">
+                {totalDarkSenders} senders use manipulative subject line tactics to force opens or create anxiety.
+              </p>
+              <div className="space-y-3">
+                {darkPatterns.map((pattern) => {
+                  const [open, setOpen] = useState(false)
+                  return (
+                    <div key={pattern.id} className={`rounded-xl border ${pattern.border} overflow-hidden`}>
+                      <button
+                        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors"
+                        onClick={() => setOpen((v) => !v)}
+                      >
+                        <span className="text-lg flex-shrink-0">{pattern.icon}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-sm font-semibold ${pattern.color}`}>{pattern.name}</p>
+                          <p className="text-xs text-zinc-500">{pattern.culprits.length} senders — {pattern.desc}</p>
+                        </div>
+                        {open ? <ChevronUp className="w-4 h-4 text-zinc-600" /> : <ChevronDown className="w-4 h-4 text-zinc-600" />}
+                      </button>
+                      {open && (
+                        <div className="px-4 pb-4 border-t border-zinc-800/40 space-y-3 pt-3">
+                          {pattern.culprits.slice(0, 5).map((c) => (
+                            <div key={c.email}>
+                              <p className="text-xs font-semibold text-zinc-300">{c.name} <span className="text-zinc-600 font-normal">· {c.count} emails</span></p>
+                              {c.examples.map((ex, i) => (
+                                <p key={i} className="text-xs text-zinc-500 mt-0.5 pl-2 border-l border-zinc-700 italic">"{ex}"</p>
+                              ))}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
           <div className="rounded-xl border border-zinc-800/40 bg-zinc-900/40 p-5">
             <p className="text-xs font-semibold text-zinc-400 mb-2">How this works</p>
             <p className="text-xs text-zinc-600 leading-relaxed">
               Breach detection cross-references your account domains against the public HIBP database — your email address is never sent to any external service.
               Authentication analysis reads SPF, DKIM, and DMARC results from Gmail's own headers on each message.
-              Spoofing detection compares the sender's display name against their actual email domain.
+              Platform X-Ray detects email service providers from headers and unsubscribe URLs.
+              Dark pattern detection analyses subject line text for manipulative language patterns.
               Everything runs in your browser, nothing is stored.
             </p>
           </div>

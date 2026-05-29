@@ -43,6 +43,7 @@ async function fetchHeaderBatch(accessToken, ids) {
         `&metadataHeaders=Subject`,
         `&metadataHeaders=List-Unsubscribe`,
         `&metadataHeaders=Authentication-Results`,
+        `&metadataHeaders=X-Mailer`,
         `&fields=payload/headers`,
       ].join('')
 
@@ -61,6 +62,7 @@ async function fetchHeaderBatch(accessToken, ids) {
         subject: get('Subject'),
         listUnsubscribe: get('List-Unsubscribe'),
         authResults: get('Authentication-Results'),
+        xMailer: get('X-Mailer'),
       }
     })
   )
@@ -87,6 +89,7 @@ function buildSenderMap(messages) {
         firstDate: dateStr,
         lastDate: dateStr,
         unsubscribeUrl: null,
+        xMailer: null,
       }
     }
 
@@ -97,6 +100,7 @@ function buildSenderMap(messages) {
     if (msg.listUnsubscribe && !entry.unsubscribeUrl) {
       entry.unsubscribeUrl = parseUnsubscribeHeader(msg.listUnsubscribe)
     }
+    if (msg.xMailer && !entry.xMailer) entry.xMailer = msg.xMailer
     if (dateStr < entry.firstDate) entry.firstDate = dateStr
     if (dateStr > entry.lastDate) entry.lastDate = dateStr
   }
