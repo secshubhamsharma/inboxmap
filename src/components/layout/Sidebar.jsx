@@ -1,9 +1,10 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Building2, Ghost, Mail, BarChart2, Settings, MapPin, ShieldAlert, CalendarDays } from 'lucide-react'
+import { LayoutDashboard, Building2, Ghost, Mail, BarChart2, Settings, ShieldAlert, CalendarDays } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
 import { getSeverity } from '@/lib/breach'
 import { getSuspiciousSenders } from '@/lib/authAnalysis'
 import ScanProgress from '@/components/shared/ScanProgress'
+import BrandLogo from '@/components/shared/BrandLogo'
 import { cn } from '@/lib/utils'
 
 const NAV = [
@@ -51,10 +52,8 @@ export default function Sidebar({ onClose }) {
         className="px-5 py-5 flex items-center gap-2.5 cursor-pointer"
         onClick={() => { navigate('/app/overview'); onClose?.() }}
       >
-        <div className="w-7 h-7 rounded-lg bg-green-500 flex items-center justify-center shadow-md shadow-green-500/20">
-          <MapPin className="w-4 h-4 text-white" strokeWidth={2.5} />
-        </div>
-        <span className="font-display font-bold text-zinc-50 tracking-tight">InboxMap</span>
+        <BrandLogo size={28} uid="sidebar" />
+        <span className="font-logo font-semibold text-zinc-50 tracking-tight">InboxMap</span>
       </div>
 
       <nav className="flex-1 px-2 py-2 space-y-0.5 overflow-y-auto">

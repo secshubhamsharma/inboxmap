@@ -1,7 +1,8 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Check, X, MapPin, Inbox, BarChart2, Download, Shield, Zap, Users } from 'lucide-react'
+import { Check, X, Inbox, BarChart2, Download, Shield, Zap, Users } from 'lucide-react'
+import BrandLogo from '@/components/shared/BrandLogo'
 import { useApp } from '@/context/AppContext'
 import { useAuth } from '@/hooks/useAuth'
 import { useGmailScan } from '@/hooks/useGmailScan'
@@ -64,10 +65,8 @@ export default function Login() {
 
       <div className="hidden lg:flex flex-col justify-between w-1/2 p-14 relative z-10 border-r border-zinc-800/40">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center shadow-lg shadow-green-500/30">
-            <MapPin className="w-4 h-4 text-white" strokeWidth={2.5} />
-          </div>
-          <span className="font-display font-bold text-zinc-50 text-lg tracking-tight">InboxMap</span>
+          <BrandLogo size={34} uid="login-left" />
+          <span className="font-logo font-semibold text-zinc-50 text-xl tracking-tight">InboxMap</span>
         </div>
 
         <div className="space-y-12">
@@ -113,10 +112,8 @@ export default function Login() {
           className="w-full max-w-[400px]"
         >
           <div className="lg:hidden flex items-center gap-2 mb-10">
-            <div className="w-7 h-7 rounded-lg bg-green-500 flex items-center justify-center">
-              <MapPin className="w-3.5 h-3.5 text-white" strokeWidth={2.5} />
-            </div>
-            <span className="font-display font-bold text-zinc-50 tracking-tight">InboxMap</span>
+            <BrandLogo size={28} uid="login-mobile" />
+            <span className="font-logo font-semibold text-zinc-50 tracking-tight">InboxMap</span>
           </div>
 
           <div className="mb-8">

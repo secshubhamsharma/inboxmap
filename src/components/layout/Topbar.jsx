@@ -1,5 +1,6 @@
 import { useLocation, useNavigate, NavLink } from 'react-router-dom'
-import { RefreshCw, Menu, MapPin, LogOut, User } from 'lucide-react'
+import { RefreshCw, Menu, LogOut, User } from 'lucide-react'
+import BrandLogo from '@/components/shared/BrandLogo'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -40,10 +41,8 @@ export default function Topbar({ onMenuClick }) {
       </button>
 
       <NavLink to="/app/overview" className="hidden md:flex items-center gap-2">
-        <div className="w-6 h-6 rounded-md bg-green-500 flex items-center justify-center">
-          <MapPin className="w-3.5 h-3.5 text-white" strokeWidth={2.5} />
-        </div>
-        <span className="font-display font-bold text-zinc-50 text-sm tracking-tight">InboxMap</span>
+        <BrandLogo size={24} uid="topbar" />
+        <span className="font-logo font-semibold text-zinc-50 text-sm tracking-tight">InboxMap</span>
       </NavLink>
 
       <span className="flex-1 text-sm font-medium text-zinc-300">{title}</span>

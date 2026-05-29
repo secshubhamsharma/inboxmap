@@ -8,6 +8,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
+        logo: ['Space Grotesk', 'sans-serif'],
         display: ['Geist', 'sans-serif'],
         body: ['Inter', 'sans-serif'],
       },
