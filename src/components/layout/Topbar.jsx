@@ -12,14 +12,12 @@ import { useApp } from '@/context/AppContext'
 import { useGmailScan } from '@/hooks/useGmailScan'
 
 const PAGE_TITLES = {
-  '/app/overview': 'Overview',
-  '/app/senders': 'All Senders',
-  '/app/newsletters': 'Newsletters',
-  '/app/promotions': 'Promotions',
-  '/app/notifications': 'Notifications',
-  '/app/social': 'Social',
-  '/app/analytics': 'Analytics',
-  '/app/settings': 'Settings',
+  '/app/overview':    'Dashboard',
+  '/app/accounts':    'Accounts Found',
+  '/app/dead-weight': 'Dead Weight',
+  '/app/senders':     'Inbox Map',
+  '/app/analytics':   'Analytics',
+  '/app/settings':    'Settings',
 }
 
 export default function Topbar({ onMenuClick }) {
@@ -37,16 +35,13 @@ export default function Topbar({ onMenuClick }) {
 
   return (
     <header className="h-14 border-b border-zinc-800/60 flex items-center px-4 gap-4 bg-zinc-950 flex-shrink-0">
-      <button
-        className="md:hidden text-zinc-400 hover:text-zinc-200 p-1"
-        onClick={onMenuClick}
-      >
+      <button className="md:hidden text-zinc-400 hover:text-zinc-200 p-1" onClick={onMenuClick}>
         <Menu className="w-5 h-5" />
       </button>
 
       <NavLink to="/app/overview" className="hidden md:flex items-center gap-2">
         <div className="w-6 h-6 rounded-md bg-green-500 flex items-center justify-center">
-          <MapPin className="w-3.5 h-3.5 text-white" />
+          <MapPin className="w-3.5 h-3.5 text-white" strokeWidth={2.5} />
         </div>
         <span className="font-display font-bold text-zinc-50 text-sm tracking-tight">InboxMap</span>
       </NavLink>

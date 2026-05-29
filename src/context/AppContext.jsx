@@ -24,6 +24,7 @@ export function AppProvider({ children }) {
   const [user, setUser] = useState(null)
   const [accessToken, setAccessToken] = useState(null)
   const [senders, setSenders] = useState([])
+  const [accounts, setAccounts] = useState([])
   const [scanStatus, setScanStatus] = useState('idle')
   const [scanProgress, setScanProgress] = useState(0)
   const [scanMessage, setScanMessage] = useState('')
@@ -46,6 +47,7 @@ export function AppProvider({ children }) {
     setUser(null)
     setAccessToken(null)
     setSenders([])
+    setAccounts([])
     setScanStatus('idle')
     setScanProgress(0)
     setScanMessage('')
@@ -56,24 +58,16 @@ export function AppProvider({ children }) {
   return (
     <AppContext.Provider
       value={{
-        user,
-        setUser,
-        accessToken,
-        setAccessToken,
-        senders,
-        setSenders,
-        scanStatus,
-        setScanStatus,
-        scanProgress,
-        setScanProgress,
-        scanMessage,
-        setScanMessage,
-        totalScanned,
-        setTotalScanned,
-        lastScanned,
-        setLastScanned,
-        settings,
-        updateSettings,
+        user, setUser,
+        accessToken, setAccessToken,
+        senders, setSenders,
+        accounts, setAccounts,
+        scanStatus, setScanStatus,
+        scanProgress, setScanProgress,
+        scanMessage, setScanMessage,
+        totalScanned, setTotalScanned,
+        lastScanned, setLastScanned,
+        settings, updateSettings,
         signOut,
       }}
     >
