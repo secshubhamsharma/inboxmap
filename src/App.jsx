@@ -7,6 +7,7 @@ import Overview from '@/pages/Overview'
 import Accounts from '@/pages/Accounts'
 import DeadWeight from '@/pages/DeadWeight'
 import Security from '@/pages/Security'
+import Trackers from '@/pages/Trackers'
 import Insights from '@/pages/Insights'
 import Timeline from '@/pages/Timeline'
 import AllSenders from '@/pages/AllSenders'
@@ -36,6 +37,7 @@ function AppRoutes() {
         <Route path="accounts"    element={<Accounts />} />
         <Route path="dead-weight" element={<DeadWeight />} />
         <Route path="security"    element={<Security />} />
+        <Route path="trackers"    element={<Trackers />} />
         <Route path="insights"    element={<Insights />} />
         <Route path="timeline"    element={<Timeline />} />
         <Route path="senders"     element={<AllSenders />} />

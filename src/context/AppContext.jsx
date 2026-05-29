@@ -27,6 +27,8 @@ export function AppProvider({ children }) {
   const [accounts, setAccounts] = useState([])
   const [authStats, setAuthStats] = useState({})
   const [breaches, setBreaches] = useState([])
+  const [trackers, setTrackers] = useState({})
+  const [trackerScanStatus, setTrackerScanStatus] = useState('idle')
   const [scanStatus, setScanStatus] = useState('idle')
   const [scanProgress, setScanProgress] = useState(0)
   const [scanMessage, setScanMessage] = useState('')
@@ -52,6 +54,8 @@ export function AppProvider({ children }) {
     setAccounts([])
     setAuthStats({})
     setBreaches([])
+    setTrackers({})
+    setTrackerScanStatus('idle')
     setScanStatus('idle')
     setScanProgress(0)
     setScanMessage('')
@@ -68,6 +72,8 @@ export function AppProvider({ children }) {
         accounts, setAccounts,
         authStats, setAuthStats,
         breaches, setBreaches,
+        trackers, setTrackers,
+        trackerScanStatus, setTrackerScanStatus,
         scanStatus, setScanStatus,
         scanProgress, setScanProgress,
         scanMessage, setScanMessage,

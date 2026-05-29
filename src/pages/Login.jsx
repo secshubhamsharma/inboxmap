@@ -29,7 +29,8 @@ const PERMISSIONS = [
   { ok: true,  text: 'Read sender names and email addresses' },
   { ok: true,  text: 'Read subject lines and dates' },
   { ok: true,  text: 'Read unsubscribe headers (List-Unsubscribe)' },
-  { ok: false, text: 'Read email body content' },
+  { ok: true,  text: 'Read a sample of email body content (tracker detection only)' },
+  { ok: false, text: 'Store email content anywhere' },
   { ok: false, text: 'Send, delete or modify emails' },
   { ok: false, text: 'Store anything on any server' },
 ]
